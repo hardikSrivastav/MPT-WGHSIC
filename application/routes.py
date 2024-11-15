@@ -90,7 +90,7 @@ def index():
 @app.route('/delete/<int:id>')
 def delete(id):
     try:
-        cur.execute(f"DELETE FROM temp_stocks WHERE tick_id = '{id}';")
+        cur.execute("DELETE FROM temp_stocks WHERE tick_id = %s;", (id,))
         conn.commit()
         return redirect('/')
     except:
@@ -171,7 +171,7 @@ def portfolio_maker():
         shares = {}
         for row in rows:
             tickers.append(row[0]) 
-            shares[row[0]] = row[-1]
+            shares[row[0]] = row[1]
         
         pf = portfolio(tickers, shares)
         weights = pf.ideal_weights()
@@ -308,8 +308,8 @@ def frontier(id):
     
 @app.route('/delete_pf/<int:id>')
 def delete_pf(id):
-    cur.execute(f"DELETE FROM stock_db WHERE portfolio_id = '{id}';")
-    cur.execute(f"DELETE FROM portfolio_db WHERE portfolio_id = '{id}';")
+    cur.execute("DELETE FROM stock_db WHERE portfolio_id = %s;", (id,))
+    cur.execute("DELETE FROM portfolio_db WHERE portfolio_id = %s;", (id,))
     conn.commit()
     return redirect('/describe')
 
