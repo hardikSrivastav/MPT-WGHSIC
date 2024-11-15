@@ -166,13 +166,17 @@ def plotter(id):
 @app.route('/portfolio', methods= ['POST', 'GET'])
 def portfolio_maker():
     if request.method == 'POST':
-        cur.execute('SELECT ticker, shares FROM temp_stocks')
+        # Update the SELECT query to get all needed columns
+        cur.execute('''
+            SELECT ticker, asset_type, exchange, year, quarter, active_since, shares 
+            FROM temp_stocks
+        ''')
         rows = cur.fetchall()
         tickers = []
         shares = {}
         for row in rows:
-            tickers.append(row[0])
-            shares[row[0]] = row[1]
+            tickers.append(row[0])  # ticker
+            shares[row[0]] = row[6]  # shares
         
         pf = portfolio(tickers, shares)
         weights = pf.ideal_weights()
@@ -183,7 +187,7 @@ def portfolio_maker():
         eff = json.dumps(graph, cls = plotly.utils.PlotlyJSONEncoder)
         
         # Store the portfolio and get its ID
-        cur.execute(f"INSERT INTO portfolio_db(efficient_portfolio) VALUES ('{eff}') RETURNING portfolio_id;")
+        cur.execute("INSERT INTO portfolio_db(efficient_portfolio) VALUES (%s) RETURNING portfolio_id;", (eff,))
         portfolio_id = cur.fetchone()[0]
         conn.commit()
 
@@ -201,9 +205,16 @@ def portfolio_maker():
                     %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                 );
             """, (
-                portfolio_id, row[0], row[1], row[2], row[3], row[4], row[5],
-                weights[i][0], weights[i][1],
-                adj['current_shares'] if adj else None,
+                portfolio_id,      # portfolio_id
+                row[0],           # ticker
+                row[1],           # asset_type
+                row[2],           # exchange
+                row[3],           # year
+                row[4],           # quarter
+                row[5],           # active_since
+                weights[i][0],    # weights_1
+                weights[i][1],    # weights_2
+                shares[row[0]],   # current_shares
                 adj['target_shares'] if adj else None,
                 adj['adjustment'] if adj else None,
                 adj['current_weight'] if adj else None,
