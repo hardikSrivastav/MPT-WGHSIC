@@ -45,7 +45,10 @@
                         <td class="px-6 py-4 whitespace-nowrap">{{ticker[2]}}</td>
                         <td class="px-6 py-4 whitespace-nowrap">{{ticker[-1]}}</td>
                         <td class="px-6 py-4 whitespace-nowrap space-x-2">
-                            <a href="/plot/{{ticker[-2]}}" class="text-accent hover:text-primary">View</a>
+                            <a href="{{ url_for('plotter', id=ticker[0]) }}" 
+                               class="text-blue-600 hover:text-blue-800 transition-colors">
+                                View
+                            </a>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <a href="/delete/{{ticker[-2]}}" class="text-red-600 hover:text-red-900">Delete</a>

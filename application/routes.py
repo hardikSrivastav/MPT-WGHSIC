@@ -61,7 +61,7 @@ def index():
 
         return redirect('/')
     else:
-        cur.execute('SELECT * FROM temp_stocks;')
+        cur.execute('SELECT tick_id, ticker, active_since, year, quarter, asset_type, exchange, shares FROM temp_stocks;')
         rows = cur.fetchall()
         
         # Ensure listings DataFrame is properly loaded
@@ -93,7 +93,8 @@ def delete(id):
         cur.execute("DELETE FROM temp_stocks WHERE tick_id = %s;", (id,))
         conn.commit()
         return redirect('/')
-    except:
+    except Exception as e:
+        print(f"Error deleting stock: {str(e)}")
         return 'There was an error deleting your file'
         
 @app.route('/plot/<int:id>')
@@ -105,9 +106,9 @@ def plotter(id):
         if not row:
             raise ValueError("No stock found with given ID")
             
-        tick, year, quarter = row[0], row[1], row[2]
+        tick, year, quarter = row[0], row[1], row[2]  # Using correct indices
         print(f"Plotting heatmap for {tick} {year}-{quarter}")  # Debug log
-
+        
         # Check Redis cache
         cache_key = f"{tick}_{year}_{quarter}_heatmap"
         cached_value = r.get(cache_key)
@@ -165,12 +166,12 @@ def plotter(id):
 @app.route('/portfolio', methods= ['POST', 'GET'])
 def portfolio_maker():
     if request.method == 'POST':
-        cur.execute('SELECT ticker, asset_type, exchange, year, quarter, active_since, shares FROM temp_stocks')
+        cur.execute('SELECT ticker, shares FROM temp_stocks')
         rows = cur.fetchall()
         tickers = []
         shares = {}
         for row in rows:
-            tickers.append(row[0]) 
+            tickers.append(row[0])
             shares[row[0]] = row[1]
         
         pf = portfolio(tickers, shares)
