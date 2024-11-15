@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio Optimizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1a237e',
+                        secondary: '#0d47a1',
+                        accent: '#2962ff',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50">
+    <nav class="bg-primary shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="text-white text-xl font-bold">Portfolio Optimizer</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:bg-primary-dark px-3 py-2 rounded-md {% if request.endpoint == 'index' %}bg-opacity-20 bg-white{% endif %}">Home</a>
+                    <a href="/describe" class="text-white hover:bg-primary-dark px-3 py-2 rounded-md {% if request.endpoint == 'describe' %}bg-opacity-20 bg-white{% endif %}">Portfolios</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

@@ -1,0 +1,44 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="p-6">
+    <!-- Container for both charts -->
+    <div class="flex justify-between gap-6">
+        <!-- Left Chart -->
+        <div class="w-1/2 bg-white shadow rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Current Correlation Matrix</h2>
+            <div id="chart1" class="w-full h-[600px]"></div>
+        </div>
+        
+        <!-- Right Chart -->
+        <div class="w-1/2 bg-white shadow rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Lagged Correlation Matrix</h2>
+            <div id="chart2" class="w-full h-[600px]"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            var graph1 = {{ graph1 | safe }};
+            var graph2 = {{ graph2 | safe }};
+            
+            // Update layout for side-by-side display
+            var layout = {
+                width: 550,  // Slightly smaller to fit side by side
+                height: 550,
+                margin: {l: 50, r: 50, t: 50, b: 50},
+                plot_bgcolor: 'rgba(0, 0, 0, 0)',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)'
+            };
+            
+            Plotly.newPlot('chart1', graph1.data, {...graph1.layout, ...layout});
+            Plotly.newPlot('chart2', graph2.data, {...graph2.layout, ...layout});
+        } catch (error) {
+            console.error('Error plotting graphs:', error);
+        }
+    });
+</script>
+{% endblock %}

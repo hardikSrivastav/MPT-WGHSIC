@@ -1,0 +1,346 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="p-6 space-y-8">
+    <!-- Stock Table -->
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <div class="flex justify-between items-center p-6 border-b">
+            <h2 class="text-xl font-semibold">Current Stocks</h2>
+            <div class="flex space-x-4">
+                <button onclick="handleMakePortfolio(event)"
+                        {% if not ticks %}disabled{% endif %}
+                        class="px-4 py-2 {% if ticks %}bg-blue-500 hover:bg-blue-600{% else %}bg-gray-400 cursor-not-allowed{% endif %} text-white rounded-md transition-colors">
+                    Make Portfolio
+                </button>
+                <a href="/clear" 
+                   onclick="return confirm('Are you sure you want to clear all stocks from the table?')"
+                   class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors 
+                          {% if not ticks %}invisible{% endif %}">
+                    Clear Table
+                </a>
+            </div>
+        </div>
+        <div class="overflow-x-auto">
+            {% if ticks %}
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticker</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Active Since</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Seeing Since</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exchange</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shares</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Correlation Heatmap</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delete</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for ticker in ticks %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4 whitespace-nowrap">{{ticker[0]}}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ticker[7]}}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ticker[5]}}-{{ticker[6]}}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ticker[1]}}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ticker[2]}}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ticker[-1]}}</td>
+                        <td class="px-6 py-4 whitespace-nowrap space-x-2">
+                            <a href="/plot/{{ticker[-2]}}" class="text-accent hover:text-primary">View</a>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <a href="/delete/{{ticker[-2]}}" class="text-red-600 hover:text-red-900">Delete</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="flex justify-center items-center py-12 text-gray-500">
+                <p>No stocks added yet</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Initial Add Stock Button (visible when form is hidden) -->
+    <div id="initialAddStockBtn" class="mb-6">
+        <button onclick="toggleForm()" 
+                class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+            Add Stock
+        </button>
+    </div>
+
+    <!-- Add Stock Form (hidden initially) -->
+    <div id="addStockForm" class="bg-white shadow rounded-lg p-8 hidden">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-semibold">Add New Stock</h2>
+            <button onclick="toggleForm()" 
+                    class="text-gray-500 hover:text-gray-700">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+        <form action="/" method="POST" class="space-y-6">
+            <!-- Stock Search Field -->
+            <div class="space-y-2">
+                <label for="stockSearch" class="block text-gray-600">Search Stock:</label>
+                <input type="text" 
+                       id="stockSearch" 
+                       class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="Start typing to search stocks..."
+                       autocomplete="off">
+                <div id="searchResults" class="absolute z-10 w-full mt-1 bg-white shadow-lg rounded-md hidden max-h-60 overflow-y-auto"></div>
+                <input type="hidden" id="ticker" name="ticker" required>
+            </div>
+
+            <!-- Time Selection -->
+            <div class="grid grid-cols-2 gap-8">
+                <div class="space-y-2">
+                    <label for="time_year" class="block text-gray-600">Starting Year:</label>
+                    <input type="range" 
+                           id="time_year" 
+                           name="time_year" 
+                           min="2019" 
+                           max="2024" 
+                           value="2020"
+                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    <div class="text-gray-600">Selected Year: <span id="yearValue">2020</span></div>
+                </div>
+                <div class="space-y-2">
+                    <label for="time_quarter" class="block text-gray-600">Starting Quarter:</label>
+                    <input type="range" 
+                           id="time_quarter" 
+                           name="time_quarter" 
+                           min="1" 
+                           max="4" 
+                           value="1"
+                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    <div class="text-gray-600">Selected Quarter: <span id="quarterValue">1</span></div>
+                </div>
+            </div>
+
+            <!-- Shares Input -->
+            <div class="space-y-2">
+                <label for="shares" class="block text-gray-600">Number of Shares:</label>
+                <input type="number" 
+                       id="shares" 
+                       name="shares" 
+                       min="1" 
+                       required
+                       class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       placeholder="Enter number of shares">
+            </div>
+
+            <!-- Add Stock Button -->
+            <button type="submit" 
+                    class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors">
+                Add Stock
+            </button>
+        </form>
+    </div>
+    <div class="mt-6">
+        <a href="/describe" 
+           class="w-full flex justify-center items-center px-6 py-3 bg-white border-2 border-blue-500 text-blue-500 rounded-lg hover:bg-blue-50 transition-colors">
+            Check Portfolio
+        </a>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('stockSearch');
+    const searchResults = document.getElementById('searchResults');
+    const tickerInput = document.getElementById('ticker');
+    const stockList = {{ ticker_list|tojson|safe }};
+    
+    searchInput.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        if (searchTerm.length < 1) {
+            searchResults.classList.add('hidden');
+            return;
+        }
+
+        const filteredStocks = [];
+        const symbols = Array.isArray(stockList.symbol) ? stockList.symbol : [];
+        const names = Array.isArray(stockList.name) ? stockList.name : [];
+        const exchanges = Array.isArray(stockList.exchange) ? stockList.exchange : [];
+        
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = String(symbols[i] || '').toLowerCase();
+            const name = String(names[i] || '').toLowerCase();
+            
+            if (symbol.includes(searchTerm) || name.includes(searchTerm)) {
+                // Calculate relevance score
+                let score = 0;
+                if (symbol === searchTerm) score += 100;  // Exact symbol match
+                else if (symbol.startsWith(searchTerm)) score += 50;  // Symbol starts with search
+                else if (name.startsWith(searchTerm)) score += 25;  // Name starts with search
+                else if (symbol.includes(searchTerm)) score += 10;  // Symbol contains search
+                else if (name.includes(searchTerm)) score += 5;  // Name contains search
+                
+                filteredStocks.push({ 
+                    symbol: symbols[i], 
+                    name: names[i],
+                    exchange: exchanges[i] || '',
+                    ipoDate: stockList.ipoDate?.[i] || 'N/A',
+                    assetType: stockList.assetType?.[i] || 'Stock',
+                    score: score
+                });
+            }
+        }
+
+        // Sort by relevance score
+        filteredStocks.sort((a, b) => b.score - a.score);
+
+        // Take top 10 results
+        const topResults = filteredStocks.slice(0, 10);
+
+        // Display results
+        if (topResults.length > 0) {
+            searchResults.innerHTML = topResults.map(stock => `
+                <div class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b last:border-0" 
+                     data-symbol="${stock.symbol}">
+                    <div class="flex justify-between items-center">
+                        <div class="font-medium text-accent">${stock.symbol}</div>
+                        <div class="text-sm text-gray-500">${stock.exchange}</div>
+                    </div>
+                    <div class="text-sm text-gray-600">${stock.name}</div>
+                </div>
+            `).join('');
+            searchResults.classList.remove('hidden');
+        } else {
+            searchResults.innerHTML = `
+                <div class="px-4 py-3 text-sm text-gray-500">
+                    No matches found for "${searchTerm}"
+                </div>`;
+            searchResults.classList.remove('hidden');
+        }
+    });
+
+    // Enhanced stock selection
+    searchResults.addEventListener('click', function(e) {
+        const stockDiv = e.target.closest('div[data-symbol]');
+        if (stockDiv) {
+            const symbol = stockDiv.dataset.symbol;
+            const name = stockDiv.querySelector('.text-gray-600').textContent;
+            searchInput.value = `${symbol} - ${name}`;
+            tickerInput.value = symbol;
+            searchResults.classList.add('hidden');
+            
+            // Add visual feedback
+            searchInput.classList.add('bg-green-50', 'border-green-500');
+            setTimeout(() => {
+                searchInput.classList.remove('bg-green-50', 'border-green-500');
+            }, 500);
+        }
+    });
+
+    // Close search results when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.classList.add('hidden');
+        }
+    });
+
+    // Keep search results visible when input is focused
+    searchInput.addEventListener('focus', function(e) {
+        if (searchInput.value.length >= 2) {
+            searchResults.classList.remove('hidden');
+        }
+    });
+
+    // Year and Quarter display
+    const yearSlider = document.getElementById('time_year');
+    const quarterSlider = document.getElementById('time_quarter');
+    const yearValue = document.getElementById('yearValue');
+    const quarterValue = document.getElementById('quarterValue');
+
+    yearSlider.addEventListener('input', function(e) {
+        yearValue.textContent = e.target.value;
+    });
+
+    quarterSlider.addEventListener('input', function(e) {
+        quarterValue.textContent = e.target.value;
+    });
+
+    // Add this debug code to check the data structure when the page loads
+    console.log('Initial Stock List:', stockList);
+});
+
+function toggleForm() {
+    const form = document.getElementById('addStockForm');
+    const initialBtn = document.getElementById('initialAddStockBtn');
+    
+    if (form.classList.contains('hidden')) {
+        // Show form with animation
+        form.classList.remove('hidden');
+        form.classList.add('animate-fade-in');
+        initialBtn.classList.add('hidden');
+    } else {
+        // Hide form
+        form.classList.add('hidden');
+        initialBtn.classList.remove('hidden');
+    }
+}
+
+async function handleMakePortfolio(event) {
+    event.preventDefault();
+    
+    // Check if button is disabled
+    if (event.target.hasAttribute('disabled')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/portfolio', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+        });
+        
+        if (response.ok) {
+            // Show success message
+            const alert = document.createElement('div');
+            alert.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg transform transition-transform duration-500 ease-in-out z-50';
+            alert.textContent = 'Portfolio created successfully!';
+            document.body.appendChild(alert);
+            
+            // Remove alert after 3 seconds
+            setTimeout(() => {
+                alert.style.transform = 'translateX(150%)';
+                setTimeout(() => alert.remove(), 500);
+            }, 3000);
+            
+            // Redirect to describe page after showing message
+            setTimeout(() => {
+                window.location.href = '/describe';
+            }, 1000);
+        } else {
+            throw new Error('Failed to create portfolio');
+        }
+    } catch (error) {
+        // Show error message
+        const alert = document.createElement('div');
+        alert.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+        alert.textContent = 'Error creating portfolio. Please try again.';
+        document.body.appendChild(alert);
+        
+        setTimeout(() => alert.remove(), 3000);
+    }
+}
+</script>
+
+<style>
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
+</style>
+{% endblock %}

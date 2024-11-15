@@ -1,0 +1,72 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="p-6 space-y-6">
+    <!-- Return to Portfolios Button -->
+    <div class="flex justify-end">
+        <a href="/describe" class="inline-flex items-center px-4 py-2 bg-accent hover:bg-accent-dark text-white rounded-md transition-colors">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Return to Portfolios
+        </a>
+    </div>
+
+    <!-- Efficient Frontier -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Efficient Frontier</h2>
+        <div id="chart1" class="w-full h-[700px]"></div>
+    </div>
+    
+    <!-- Portfolio Details -->
+    <div class="bg-white shadow rounded-lg p-6">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Portfolio Details</h2>
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ticker</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Max Sharpe</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Low Risk</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shares</th>
+                        <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    {% for item in items %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-3 py-2 whitespace-nowrap font-medium text-gray-900">{{ item.ticker }}</td>
+                        <td class="px-3 py-2 whitespace-nowrap">{{ "%.2f"|format(item.max_sharpe*100) }}%</td>
+                        <td class="px-3 py-2 whitespace-nowrap">{{ "%.2f"|format(item.low_risk*100) }}%</td>
+                        <td class="px-3 py-2 whitespace-nowrap">{{ item.current_shares }}</td>
+                        <td class="px-3 py-2 whitespace-nowrap">{{ item.target_shares }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        try {
+            var graph = {{ graph | safe }};
+            
+            // Update layout for larger graph
+            var layout = {
+                width: 800,  // Increased width for 70% container
+                height: 700,
+                margin: {l: 50, r: 50, t: 50, b: 50},
+                plot_bgcolor: 'rgba(0, 0, 0, 0)',
+                paper_bgcolor: 'rgba(0, 0, 0, 0)'
+            };
+            
+            Plotly.newPlot('chart1', graph.data, {...graph.layout, ...layout});
+        } catch (error) {
+            console.error('Error plotting graph:', error);
+        }
+    });
+</script>
+{% endblock %}

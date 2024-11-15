@@ -1,0 +1,9 @@
+Flask
+pandas
+numpy
+plotly
+plotly-express
+python-dotenv
+redis
+psycopg2
+openpyxl
