@@ -13,7 +13,7 @@ app.config.update(
     DB_PASSWORD=os.getenv('PGPASSWORD'),
     DB_HOST=os.getenv('PGHOST'),
     DB_PORT=os.getenv('PGPORT'),
-    REDIS_URL=os.getenv('REDIS_URL', 'redis://default:pXsTxkPHpoSDnCEBpgTGKsdQKZxzYcuA@redis.railway.internal:6379') if os.getenv('ENVIRONMENT') == 'development' else os.getenv('REDIS_URL')
+    REDIS_URL=os.getenv('REDIS_URL') or 'redis://default:pXsTxkPHpoSDnCEBpgTGKsdQKZxzYcuA@redis.railway.internal:6379'
 )
 
 from application import routes
