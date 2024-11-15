@@ -47,11 +47,16 @@ def index():
         quarter = int(request.form['time_quarter'])
         shares = int(request.form['shares'])
         
+        # Get the stock information
         ipo_date = listings.loc[(listings['symbol'] == tick), 'ipoDate'].iloc[0].date()
         exchange = listings.loc[(listings['symbol'] == tick), 'exchange'].iloc[0]
         asset_type = listings.loc[(listings['symbol'] == tick), 'assetType'].iloc[0]
         
-        cur.execute(f"INSERT INTO temp_stocks(ticker, active_since, year, quarter, asset_type, exchange, shares) VALUES('{tick}',{ipo_date}, {year}, {quarter}, '{asset_type}',' {exchange}', {shares});")
+        # Use parameterized query instead of f-string
+        cur.execute("""
+            INSERT INTO temp_stocks(ticker, active_since, year, quarter, asset_type, exchange, shares) 
+            VALUES(%s, %s, %s, %s, %s, %s, %s)
+        """, (tick, ipo_date, year, quarter, asset_type, exchange, shares))
         conn.commit()
 
         return redirect('/')
