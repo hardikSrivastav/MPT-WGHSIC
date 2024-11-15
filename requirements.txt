@@ -7,3 +7,10 @@ python-dotenv
 redis
 psycopg2
 openpyxl
+yfinance
+gunicorn
+matplotlib
+seaborn
+requests
+setuptools
+async-timeout
