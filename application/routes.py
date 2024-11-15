@@ -85,7 +85,21 @@ def index():
         for key in stocks_data:
             print(f"{key}: {stocks_data[key][:5]}")
         
-        return render_template('index.html', ticker_list=stocks_data, ticks=rows)
+        # Format the data for display
+        formatted_rows = []
+        for row in rows:
+            formatted_row = {
+                'id': row[0],
+                'ticker': row[1],
+                'active_since': row[2],
+                'seeing_since': f"{row[3]}-Q{row[4]}",  # Combine year and quarter
+                'asset_type': row[5],
+                'exchange': row[6],
+                'shares': row[7]
+            }
+            formatted_rows.append(formatted_row)
+        
+        return render_template('index.html', ticker_list=stocks_data, ticks=formatted_rows)
 
 @app.route('/delete/<int:id>')
 def delete(id):

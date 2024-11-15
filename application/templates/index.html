@@ -31,27 +31,27 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset Type</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Exchange</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Shares</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Correlation Heatmap</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delete</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
-                    {% for ticker in ticks %}
+                    {% for tick in ticks %}
                     <tr class="hover:bg-gray-50">
-                        <td class="px-6 py-4 whitespace-nowrap">{{ticker[0]}}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ticker[7]}}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ticker[5]}}-{{ticker[6]}}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ticker[1]}}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ticker[2]}}</td>
-                        <td class="px-6 py-4 whitespace-nowrap">{{ticker[-1]}}</td>
-                        <td class="px-6 py-4 whitespace-nowrap space-x-2">
-                            <a href="{{ url_for('plotter', id=ticker[0]) }}" 
+                        <td class="px-6 py-4 whitespace-nowrap">{{ tick.ticker }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ tick.active_since }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ tick.seeing_since }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ tick.asset_type }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ tick.exchange }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">{{ tick.shares }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="{{ url_for('plotter', id=tick.id) }}" 
                                class="text-blue-600 hover:text-blue-800 transition-colors">
                                 View
                             </a>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <a href="/delete/{{ticker[-2]}}" class="text-red-600 hover:text-red-900">Delete</a>
+                            <a href="{{ url_for('delete', id=tick.id) }}" 
+                               class="ml-4 text-red-600 hover:text-red-800 transition-colors">
+                                Delete
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
