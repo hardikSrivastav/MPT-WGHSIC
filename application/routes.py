@@ -376,3 +376,14 @@ def update_priority():
         conn.commit()
         
         return redirect('/describe')
+
+@app.route('/clear')
+def clear_table():
+    try:
+        # Delete all records from temp_stocks table
+        cur.execute("DELETE FROM temp_stocks;")
+        conn.commit()
+        return redirect('/')
+    except Exception as e:
+        print(f"Error clearing table: {str(e)}")
+        return 'There was an error clearing the table'
